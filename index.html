@@ -62,7 +62,7 @@ function show(){nav();$("wm").style.display=((tab==="proj"&&cur)||(tab==="pat"&&
 var pend=null;
 function ask(m,y){var o=document.createElement("div");o.style.cssText="position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:99";o.innerHTML='<div class="card" style="background:var(--bg);max-width:320px;margin:16px"><p>'+esc(m)+'</p><div class="r"><button class="b p" id="ay">Yes</button><button class="b" id="an">Cancel</button></div></div>';document.body.appendChild(o);o.querySelector("#ay").onclick=function(){o.remove();y()};o.querySelector("#an").onclick=function(){o.remove()}}
 function loadPic(f,cb){var img=new Image();img.onload=function(){var m=Math.min(1,900/Math.max(img.width,img.height)),cv=document.createElement("canvas");cv.width=Math.round(img.width*m);cv.height=Math.round(img.height*m);cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);cb(cv.toDataURL("image/jpeg",.9),img.width,img.height)};img.onerror=function(){cb(null)};img.src=URL.createObjectURL(f)}
-function fields(W,H,k,tr){return'<div class="r"><label>Stitches wide <input type="number" id="sw" value="'+W+'" min="2" max="120"></label></div><div class="r"><label>Rows tall <input type="number" id="sh" value="'+H+'" min="2" max="300"></label></div><div class="r"><label>Colors (2 to 30) <input type="number" id="sc" value="'+k+'" min="2" max="30"></label></div><div class="m">Trim edges (%) to cut off borders or numbers:</div><div class="r"><label>Top <input type="number" id="t0" value="'+tr[0]+'" min="0" max="40"></label><label>Bottom <input type="number" id="t1" value="'+tr[1]+'" min="0" max="40"></label></div><div class="r"><label>Left <input type="number" id="t2" value="'+tr[2]+'" min="0" max="40"></label><label>Right <input type="number" id="t3" value="'+tr[3]+'" min="0" max="40"></label></div>'}
+function fields(W,H,k,tr){return'<div class="r"><label>Stitches wide <input type="number" id="sw" value="'+W+'" min="2" max="120"></label></div><div class="r"><label>Rows tall <input type="number" id="sh" value="'+H+'" min="2" max="150"></label></div><div class="r"><label>Colors (2 to 30) <input type="number" id="sc" value="'+k+'" min="2" max="30"></label></div><div class="m">Trim edges (%) to cut off borders or numbers:</div><div class="r"><label>Top <input type="number" id="t0" value="'+tr[0]+'" min="0" max="40"></label><label>Bottom <input type="number" id="t1" value="'+tr[1]+'" min="0" max="40"></label></div><div class="r"><label>Left <input type="number" id="t2" value="'+tr[2]+'" min="0" max="40"></label><label>Right <input type="number" id="t3" value="'+tr[3]+'" min="0" max="40"></label></div>'}
 function rd(){return{W:+$("sw").value,H:+$("sh").value,k:Math.max(2,Math.min(30,Math.round(+$("sc").value)||2)),tr:[0,1,2,3].map(function(i){return Math.max(0,Math.min(40,+$("t"+i).value||0))})}}
 function convert(d,o,cb){
   var img=new Image();img.onload=function(){
@@ -97,7 +97,7 @@ function projects(){
   $("fl").onchange=function(){var f=this.files[0];if(!f)return;$("msg").textContent="Reading picture...";loadPic(f,function(d,w,h){if(!d){$("msg").textContent="Couldn't read that picture.";return}pend=d;$("msg").textContent="";$("pv").innerHTML='<div class="m">\u2713 Picture added ('+w+" \u00d7 "+h+' px)</div><img src="'+d+'" style="max-width:100%;max-height:180px;margin:6px 0">'})};
   $("mk").onclick=function(){
     if(!pend){$("msg").textContent="Add a picture first.";return}
-    var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}if(o.W>120||o.H>300){$("msg").textContent="Too big. The most is 120 stitches wide and 300 rows tall.";return}
+    var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}if(o.W>120||o.H>150){$("msg").textContent="Too big. The most is 120 stitches wide and 150 rows tall. Bigger charts get too laggy on a phone.";return}
     $("msg").textContent="Building...";
     convert(pend,o,function(g,c){var p={id:Date.now(),name:$("nm").value||"My chart",w:o.W,h:o.H,colors:c,grid:g,p:0,img:pend,cfg:{k:o.k,tr:o.tr}};S.projects.push(p);save();pend=null;cur=p;show()});
   };
@@ -110,7 +110,7 @@ function editP(p){
   $("sv").onclick=function(){
     p.name=$("nm").value||p.name;
     if(!p.img){save();show();return}
-    var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}if(o.W>120||o.H>300){$("msg").textContent="Too big. The most is 120 stitches wide and 300 rows tall.";return}
+    var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}if(o.W>120||o.H>150){$("msg").textContent="Too big. The most is 120 stitches wide and 150 rows tall. Bigger charts get too laggy on a phone.";return}
     $("msg").textContent="Building...";
     convert(p.img,o,function(g,c){if(o.W!==p.w||o.H!==p.h)p.p=0;p.w=o.W;p.h=o.H;p.grid=g;p.colors=c;p.cfg={k:o.k,tr:o.tr};save();cur=p;show()});
   };
@@ -154,17 +154,22 @@ function applySet(){var r=document.documentElement,s=S.set,p=(PAL[s.pal]||PAL.li
 /* ---------- tracker ---------- */
 function track(){
   var P=cur,W=P.w,N=P.h,C=20,ML=30,MT=24,VW=ML*2+W*C,VH=MT*2+N*C;
-  v.innerHTML='<div id="top"><button class="b" id="bk">\u2190</button><span id="st"></span><button class="b" id="mk2">Mark: OFF</button><button class="b" id="un">Undo</button><button class="b" id="zo" style="padding:9px 12px">\u2212</button><button class="b" id="zi" style="padding:9px 12px">+</button></div><div id="zw" style="overflow-x:auto;touch-action:pan-x pan-y"><svg id="svg" viewBox="0 0 '+VW+' '+VH+'"></svg></div><div class="r"><button class="b" id="ed">Edit project</button><button class="b" id="nt">Notes</button><button class="b" id="rs">Reset progress</button></div><div class="card" id="ntv" style="white-space:pre-wrap;cursor:pointer;min-height:3em"></div>';
-  var svg=$("svg"),ZS=[1,1.5,2,3];
-  function focusCur(){if(P.p>=N*W)return;var r=Math.floor(P.p/W)+1,j=P.p-(r-1)*W,xi=r%2===1?W-1-j:j,s=svg.clientWidth/VW,tb=$("top").getBoundingClientRect().bottom,bb=$("nav").getBoundingClientRect().top,sr=svg.getBoundingClientRect();zw.scrollLeft=(xOf(xi)+C/2)*s-zw.clientWidth/2;window.scrollBy(0,sr.top+(yOf(r)+C/2)*s-(tb+bb)/2)}
-  function zoom(d){var z=S.zoom||1,n=d>0?ZS.filter(function(q){return q>z+.01})[0]:ZS.filter(function(q){return q<z-.01}).pop();if(n){S.zoom=n;save();svg.style.width=(n*100)+"%";focusCur()}}
-  if((S.zoom||1)>1)setTimeout(focusCur,50);
-  var zw=$("zw"),pd=0,pz=1;svg.style.touchAction="pan-x pan-y";
+  v.innerHTML='<div id="top"><button class="b" id="bk">\u2190</button><span id="st"></span><button class="b" id="mk2">Mark: OFF</button><button class="b" id="un">Undo</button><button class="b" id="zo" style="padding:9px 12px">\u2212</button><button class="b" id="zi" style="padding:9px 12px">+</button></div><div id="zw" style="overflow:auto;touch-action:pan-x pan-y"><svg id="svg" viewBox="0 0 '+VW+' '+VH+'"></svg></div><div class="r"><button class="b" id="ed">Edit project</button><button class="b" id="nt">Notes</button><button class="b" id="rs">Reset progress</button></div><div class="card" id="ntv" style="white-space:pre-wrap;cursor:pointer;min-height:3em"></div>';
+  var svg=$("svg"),zw=$("zw"),SC=P.colors.map(function(c){var n=parseInt(c.slice(1),16);return(((n>>16)&255)*.3+((n>>8)&255)*.59+(n&255)*.11)>170?"rgba(0,0,0,.3)":"rgba(255,255,255,.55)"});
+  function maxZ(){return Math.max(4,55/(zw.clientWidth*C/VW))}
+  function zset(z){z=Math.max(1,Math.min(maxZ(),z));S.zoom=z;svg.style.width=(z*100)+"%"}
+  function steps(){var m=maxZ(),a=[1],z=1;while(z*1.5<m){z*=1.5;a.push(z)}a.push(m);return a}
+  function fit(){if(!$("zw"))return;zw.style.maxHeight=Math.max(200,window.innerHeight-$("top").offsetHeight-$("nav").offsetHeight-16)+"px"}
+  window.onresize=fit;fit();
+  function focusCur(){if(P.p>=N*W)return;var r=Math.floor(P.p/W)+1,j=P.p-(r-1)*W,xi=r%2===1?W-1-j:j,s=svg.clientWidth/VW,sr=svg.getBoundingClientRect(),zr=zw.getBoundingClientRect();zw.scrollLeft=(xOf(xi)+C/2)*s-zw.clientWidth/2;zw.scrollTop+=sr.top+(yOf(r)+C/2)*s-(zr.top+zr.height/2)}
+  function zoom(d){var z=S.zoom||1,a=steps(),n=d>0?a.filter(function(q){return q>z*1.02})[0]:a.filter(function(q){return q<z/1.02}).pop();if(n){zset(n);save();focusCur()}}
+  zset(S.zoom||1);if((S.zoom||1)>1)setTimeout(focusCur,50);
+  var pd=0,pz=1;svg.style.touchAction="pan-x pan-y";
   function dist(e){var a=e.touches[0],b=e.touches[1];return Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)}
   zw.addEventListener("touchstart",function(e){if(e.touches.length===2){pd=dist(e);pz=S.zoom||1}},{passive:true});
-  zw.addEventListener("touchmove",function(e){if(e.touches.length!==2||!pd)return;e.preventDefault();var r=zw.getBoundingClientRect(),sr=svg.getBoundingClientRect(),cx=(e.touches[0].clientX+e.touches[1].clientX)/2,cy=(e.touches[0].clientY+e.touches[1].clientY)/2,mx=cx-r.left,f=(zw.scrollLeft+mx)/svg.clientWidth,fy=(cy-sr.top)/sr.height,z=Math.max(1,Math.min(4,pz*dist(e)/pd));S.zoom=z;svg.style.width=(z*100)+"%";zw.scrollLeft=f*svg.clientWidth-mx;var s2=svg.getBoundingClientRect();window.scrollBy(0,s2.top+fy*s2.height-cy)},{passive:false});
+  zw.addEventListener("touchmove",function(e){if(e.touches.length!==2||!pd)return;e.preventDefault();var r=zw.getBoundingClientRect(),sr=svg.getBoundingClientRect(),cx=(e.touches[0].clientX+e.touches[1].clientX)/2,cy=(e.touches[0].clientY+e.touches[1].clientY)/2,mx=cx-r.left,f=(zw.scrollLeft+mx)/svg.clientWidth,fy=(cy-sr.top)/sr.height;zset(pz*dist(e)/pd);zw.scrollLeft=f*svg.clientWidth-mx;var s2=svg.getBoundingClientRect();zw.scrollTop+=s2.top+fy*s2.height-cy},{passive:false});
   zw.addEventListener("touchend",function(e){if(e.touches.length<2&&pd){pd=0;save()}});
-  svg.style.width=((S.zoom||1)*100)+"%";$("zo").onclick=function(){zoom(-1)};$("zi").onclick=function(){zoom(1)};
+  $("zo").onclick=function(){zoom(-1)};$("zi").onclick=function(){zoom(1)};
   function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e}
   function yOf(r){return MT+(N-r)*C}function xOf(x){return ML+x*C}
   var HS=[];function setP(x,nh){x=Math.max(0,Math.min(N*W,x));if(x!==P.p&&!nh){HS.push(P.p);if(HS.length>30)HS.shift()}P.p=x;save();draw()}
@@ -176,7 +181,7 @@ function track(){
     for(var r=1;r<=N;r++){
       var s=P.grid[N-r],k=Math.max(0,Math.min(W,P.p-(r-1)*W)),odd=r%2===1;
       for(var xi=0;xi<W;xi++){
-        var g=el("rect",{x:xOf(xi),y:yOf(r),width:C,height:C,fill:P.colors[+s[xi]],stroke:"rgba(255,255,255,.55)","stroke-width":1});
+        var g=el("rect",{x:xOf(xi),y:yOf(r),width:C,height:C,fill:P.colors[+s[xi]],stroke:SC[+s[xi]],"stroke-width":1});
         g.onclick=(function(a,b){return function(){cellTap(a,b)}})(r,xi);
         if(odd?(xi>=W-k):(xi<k))el("rect",{x:xOf(xi),y:yOf(r),width:C,height:C,fill:"#000","fill-opacity":.4,"pointer-events":"none"});
       }
