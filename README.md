@@ -8,14 +8,13 @@ Welcome to **Hook & Grid**! This is a cozy, custom mobile crochet toolbox design
 - **Gauge Calculations:** Takes the guesswork out of your yarn tension and project sizing.
 - **Custom Stylization:** Tailored visual grid themes and custom design touches to make counting and tracking actually fun.
 
-##App Link
-https://escapereality94.github.io/hook-and-grid/
-
 ## 📥 How to Install
 Because this is built as a web-powered app, you can easily add it right to your phone's home screen without needing an app store:
-1. Open the app link in your mobile web browser. 
-2. Tap the **three dots (: / menu)** icon in the top right corner of your browser.
-3. Select **"Install app"** or **"Add to Home Screen"** to keep it right alongside your other apps.
+1. Open the app link in your mobile web browser.
+2. **App Link
+https://escapereality94.github.io/hook-and-grid/
+3. Tap the **three dots (: / menu)** icon in the top right corner of your browser.
+4. Select **"Install app"** or **"Add to Home Screen"** to keep it right alongside your other apps.
 
 ## 🤖 Acknowledgments & Build Notes
 Built with a lot of love, practical creative problem-solving, and code/brainstorming assistance from **Claude** and **Gemini**. Happy crafting! 💛
