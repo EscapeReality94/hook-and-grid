@@ -74,8 +74,13 @@ function convert(d,o,cb){
       for(var i=0;i<dd.length;i+=4){s[0]+=dd[i];s[1]+=dd[i+1];s[2]+=dd[i+2];n++}
       cells.push([s[0]/n,s[1]/n,s[2]/n]);
     }
-    var lum=cells.map(function(c){return c[0]*.3+c[1]*.59+c[2]*.11}),srt=lum.map(function(l,i){return i}).sort(function(a,b){return lum[a]-lum[b]});
-    var cen=[];for(var j=0;j<k;j++)cen.push(cells[srt[Math.floor((j+.5)*srt.length/k)]].slice());
+    var bins={},cen=[];
+    cells.forEach(function(c){var key=(c[0]>>4)+","+(c[1]>>4)+","+(c[2]>>4),b=bins[key]||(bins[key]={s:[0,0,0],n:0});b.s[0]+=c[0];b.s[1]+=c[1];b.s[2]+=c[2];b.n++});
+    var bl=Object.keys(bins).map(function(q){var b=bins[q];return{c:[b.s[0]/b.n,b.s[1]/b.n,b.s[2]/b.n],n:b.n}}),big=bl.filter(function(b){return b.n>=Math.max(2,cells.length*.004)});if(!big.length)big=bl;
+    big.sort(function(a,b){return b.n-a.n});cen.push(big[0].c.slice());
+    function d2(a,b){return(a[0]-b[0])*(a[0]-b[0])+(a[1]-b[1])*(a[1]-b[1])+(a[2]-b[2])*(a[2]-b[2])}
+    while(cen.length<k&&cen.length<big.length){var bi=null,bd=-1;big.forEach(function(b){var m=1e9;cen.forEach(function(q){m=Math.min(m,d2(b.c,q))});if(m>bd){bd=m;bi=b}});cen.push(bi.c.slice())}
+    while(cen.length<k)cen.push(cells[0].slice());
     var asg=[];
     for(var it=0;it<10;it++){
       asg=cells.map(function(c){var b=0,bd=1e9;cen.forEach(function(q,qi){var e=(c[0]-q[0])*(c[0]-q[0])+(c[1]-q[1])*(c[1]-q[1])+(c[2]-q[2])*(c[2]-q[2]);if(e<bd){bd=e;b=qi}});return b});
@@ -99,20 +104,22 @@ function projects(){
     if(!pend){$("msg").textContent="Add a picture first.";return}
     var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}if(o.W>120||o.H>150){$("msg").textContent="Too big. The most is 120 stitches wide and 150 rows tall. Bigger charts get too laggy on a phone.";return}
     $("msg").textContent="Building...";
-    convert(pend,o,function(g,c){var p={id:Date.now(),name:$("nm").value||"My chart",w:o.W,h:o.H,colors:c,grid:g,p:0,img:pend,cfg:{k:o.k,tr:o.tr}};S.projects.push(p);save();pend=null;cur=p;show()});
+    convert(pend,o,function(g,c){var p={id:Date.now(),name:$("nm").value||"My chart",w:o.W,h:o.H,colors:c,grid:g,p:0,img:pend,cfg:{k:o.k,tr:o.tr,v:2}};S.projects.push(p);save();pend=null;cur=p;show()});
   };
 }
 function editP(p){
   var cf=p.cfg||{k:2,tr:[0,0,0,0]};
   v.innerHTML='<h2>Edit project</h2><div class="card"><div class="r"><input type="text" id="nm" value="'+esc(p.name)+'"></div>'+(p.img?'<img src="'+p.img+'" style="max-width:100%;max-height:180px;margin:6px 0">'+fields(p.w,p.h,cf.k,cf.tr)+'<div class="m">Changing the size or trim rebuilds the chart. If the size changes, your progress goes back to 0.</div>':'<div class="m">This chart has no picture saved, so only the name can change.</div>')+'<div class="r"><button class="b p" id="sv">Save</button><button class="b" id="cn">Cancel</button></div><div id="msg" class="m"></div></div>';
   if(p.img)$("sc").value=cf.k;
+  v.insertAdjacentHTML("beforeend",'<h2>Colors</h2><div class="card"><div class="m">Tap a color to change it. Your progress stays.</div><div class="r" id="cls"></div></div>');
+  p.colors.forEach(function(c,i){var x=document.createElement("input");x.type="color";x.value=c;x.style.cssText="width:56px;height:44px;padding:2px";x.oninput=function(){p.colors[i]=x.value;save()};$("cls").appendChild(x)});
   $("cn").onclick=function(){show()};
   $("sv").onclick=function(){
     p.name=$("nm").value||p.name;
     if(!p.img){save();show();return}
     var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}if(o.W>120||o.H>150){$("msg").textContent="Too big. The most is 120 stitches wide and 150 rows tall. Bigger charts get too laggy on a phone.";return}
     $("msg").textContent="Building...";
-    convert(p.img,o,function(g,c){if(o.W!==p.w||o.H!==p.h)p.p=0;p.w=o.W;p.h=o.H;p.grid=g;p.colors=c;p.cfg={k:o.k,tr:o.tr};save();cur=p;show()});
+    var c0=p.cfg||{k:2,tr:[0,0,0,0]};if(c0.v===2&&o.W===p.w&&o.H===p.h&&o.k===c0.k&&String(o.tr)===String(c0.tr)){save();cur=p;show();return}convert(p.img,o,function(g,c){if(o.W!==p.w||o.H!==p.h)p.p=0;p.w=o.W;p.h=o.H;p.grid=g;p.colors=c;p.cfg={k:o.k,tr:o.tr,v:2};save();cur=p;show()});
   };
 }
 /* ---------- settings ---------- */
@@ -153,7 +160,7 @@ function applySet(){var r=document.documentElement,s=S.set,p=(PAL[s.pal]||PAL.li
  r.style.setProperty("--fs",s.fs+"px");r.style.setProperty("--nt",s.nt+"px")}
 /* ---------- tracker ---------- */
 function track(){
-  var P=cur,W=P.w,N=P.h,C=20,ML=30,MT=24,VW=ML*2+W*C,VH=MT*2+N*C;
+  var P=cur,W=P.w,N=P.h,C=20,ML=30,MT=24,VW=ML*2+W*C,VH=MT*2+N*C;S.zoom=1;
   v.innerHTML='<div id="top"><button class="b" id="bk">\u2190</button><span id="st"></span><button class="b" id="mk2">Mark: OFF</button><button class="b" id="un">Undo</button><button class="b" id="zo" style="padding:9px 12px">\u2212</button><button class="b" id="zi" style="padding:9px 12px">+</button></div><div id="zw" style="overflow:auto;touch-action:pan-x pan-y"><svg id="svg" viewBox="0 0 '+VW+' '+VH+'"></svg></div><div class="r"><button class="b" id="ed">Edit project</button><button class="b" id="nt">Notes</button><button class="b" id="rs">Reset progress</button></div><div class="card" id="ntv" style="white-space:pre-wrap;cursor:pointer;min-height:3em"></div>';
   var svg=$("svg"),zw=$("zw"),SC=P.colors.map(function(c){var n=parseInt(c.slice(1),16);return(((n>>16)&255)*.3+((n>>8)&255)*.59+(n&255)*.11)>170?"rgba(0,0,0,.3)":"rgba(255,255,255,.55)"});
   function maxZ(){return Math.max(4,55/(zw.clientWidth*C/VW))}
