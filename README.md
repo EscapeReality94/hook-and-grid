@@ -11,7 +11,6 @@ Welcome to **Hook & Grid**! This is a cozy, custom mobile crochet toolbox design
 ## 📥 How to Install
 Because this is built as a web-powered app, you can easily add it right to your phone's home screen without needing an app store:
 1. Open the app link in your mobile web browser.
-2. **App Link
 https://escapereality94.github.io/hook-and-grid/
 3. Tap the **three dots (: / menu)** icon in the top right corner of your browser.
 4. Select **"Install app"** or **"Add to Home Screen"** to keep it right alongside your other apps.
