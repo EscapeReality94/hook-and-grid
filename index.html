@@ -97,7 +97,7 @@ function projects(){
   $("fl").onchange=function(){var f=this.files[0];if(!f)return;$("msg").textContent="Reading picture...";loadPic(f,function(d,w,h){if(!d){$("msg").textContent="Couldn't read that picture.";return}pend=d;$("msg").textContent="";$("pv").innerHTML='<div class="m">\u2713 Picture added ('+w+" \u00d7 "+h+' px)</div><img src="'+d+'" style="max-width:100%;max-height:180px;margin:6px 0">'})};
   $("mk").onclick=function(){
     if(!pend){$("msg").textContent="Add a picture first.";return}
-    var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}
+    var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}if(o.W>120||o.H>300){$("msg").textContent="Too big. The most is 120 stitches wide and 300 rows tall.";return}
     $("msg").textContent="Building...";
     convert(pend,o,function(g,c){var p={id:Date.now(),name:$("nm").value||"My chart",w:o.W,h:o.H,colors:c,grid:g,p:0,img:pend,cfg:{k:o.k,tr:o.tr}};S.projects.push(p);save();pend=null;cur=p;show()});
   };
@@ -110,7 +110,7 @@ function editP(p){
   $("sv").onclick=function(){
     p.name=$("nm").value||p.name;
     if(!p.img){save();show();return}
-    var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}
+    var o=rd();if(!(o.W>=2&&o.H>=2)){$("msg").textContent="Enter the width and height.";return}if(o.W>120||o.H>300){$("msg").textContent="Too big. The most is 120 stitches wide and 300 rows tall.";return}
     $("msg").textContent="Building...";
     convert(p.img,o,function(g,c){if(o.W!==p.w||o.H!==p.h)p.p=0;p.w=o.W;p.h=o.H;p.grid=g;p.colors=c;p.cfg={k:o.k,tr:o.tr};save();cur=p;show()});
   };
@@ -154,7 +154,7 @@ function applySet(){var r=document.documentElement,s=S.set,p=(PAL[s.pal]||PAL.li
 /* ---------- tracker ---------- */
 function track(){
   var P=cur,W=P.w,N=P.h,C=20,ML=30,MT=24,VW=ML*2+W*C,VH=MT*2+N*C;
-  v.innerHTML='<div id="top"><button class="b" id="bk">\u2190</button><span id="st"></span><button class="b" id="mk2">Mark: OFF</button><button class="b" id="un">Undo</button><button class="b" id="zo" style="padding:9px 12px">\u2212</button><button class="b" id="zi" style="padding:9px 12px">+</button></div><div id="zw" style="overflow-x:auto;touch-action:pan-x pan-y"><svg id="svg" viewBox="0 0 '+VW+' '+VH+'"></svg></div><div class="r"><button class="b" id="ed">Edit project</button><button class="b" id="nt">Notes</button><button class="b" id="rs">Reset progress</button></div>';
+  v.innerHTML='<div id="top"><button class="b" id="bk">\u2190</button><span id="st"></span><button class="b" id="mk2">Mark: OFF</button><button class="b" id="un">Undo</button><button class="b" id="zo" style="padding:9px 12px">\u2212</button><button class="b" id="zi" style="padding:9px 12px">+</button></div><div id="zw" style="overflow-x:auto;touch-action:pan-x pan-y"><svg id="svg" viewBox="0 0 '+VW+' '+VH+'"></svg></div><div class="r"><button class="b" id="ed">Edit project</button><button class="b" id="nt">Notes</button><button class="b" id="rs">Reset progress</button></div><div class="card" id="ntv" style="white-space:pre-wrap;cursor:pointer;min-height:3em"></div>';
   var svg=$("svg"),ZS=[1,1.5,2,3];
   function focusCur(){if(P.p>=N*W)return;var r=Math.floor(P.p/W)+1,j=P.p-(r-1)*W,xi=r%2===1?W-1-j:j,s=svg.clientWidth/VW,tb=$("top").getBoundingClientRect().bottom,bb=$("nav").getBoundingClientRect().top,sr=svg.getBoundingClientRect();zw.scrollLeft=(xOf(xi)+C/2)*s-zw.clientWidth/2;window.scrollBy(0,sr.top+(yOf(r)+C/2)*s-(tb+bb)/2)}
   function zoom(d){var z=S.zoom||1,n=d>0?ZS.filter(function(q){return q>z+.01})[0]:ZS.filter(function(q){return q<z-.01}).pop();if(n){S.zoom=n;save();svg.style.width=(n*100)+"%";focusCur()}}
@@ -201,7 +201,9 @@ function track(){
   $("bk").onclick=function(){cur=null;on=false;show()};
   $("un").onclick=function(){if(HS.length)setP(HS.pop(),1);else setP(P.p-1)};
   $("rs").onclick=function(){ask("Reset all progress for this project?",function(){setP(0)})};$("ed").onclick=function(){editP(P)};
-  $("nt").onclick=function(){var o=document.createElement("div");o.style.cssText="position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:99";o.innerHTML='<div class="card" style="background:var(--bg);width:min(92vw,420px);margin:16px"><b>Notes</b><div class="m">Hook size, yarn, anything you want to remember.</div><textarea id="nta" style="min-height:140px"></textarea><div class="r"><button class="b p" id="ntd">Done</button></div></div>';document.body.appendChild(o);var t=o.querySelector("#nta");t.value=P.notes||"";t.oninput=function(){P.notes=t.value;save()};o.querySelector("#ntd").onclick=function(){o.remove()}};
+  function shN(){var e=$("ntv");e.textContent=P.notes||"Notes: tap here to add hook size, yarn, and anything else.";e.style.opacity=P.notes?1:.6}
+  $("ntv").onclick=function(){$("nt").onclick()};shN();
+  $("nt").onclick=function(){var o=document.createElement("div");o.style.cssText="position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:99";o.innerHTML='<div class="card" style="background:var(--bg);width:min(92vw,420px);margin:16px"><b>Notes</b><div class="m">Hook size, yarn, anything you want to remember.</div><textarea id="nta" style="min-height:140px"></textarea><div class="r"><button class="b p" id="ntd">Done</button></div></div>';document.body.appendChild(o);var t=o.querySelector("#nta");t.value=P.notes||"";t.oninput=function(){P.notes=t.value;save();shN()};o.querySelector("#ntd").onclick=function(){o.remove()}};
   $("mk2").onclick=function(){on=!on;this.textContent=on?"Mark: ON":"Mark: OFF";this.className=on?"b on":"b"};
   on=false;draw();
 }
