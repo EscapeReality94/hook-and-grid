@@ -62,8 +62,8 @@ function show(){nav();$("wm").style.display=((tab==="proj"&&cur)||(tab==="pat"&&
 var pend=null;
 function ask(m,y){var o=document.createElement("div");o.style.cssText="position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:99";o.innerHTML='<div class="card" style="background:var(--bg);max-width:320px;margin:16px"><p>'+esc(m)+'</p><div class="r"><button class="b p" id="ay">Yes</button><button class="b" id="an">Cancel</button></div></div>';document.body.appendChild(o);o.querySelector("#ay").onclick=function(){o.remove();y()};o.querySelector("#an").onclick=function(){o.remove()}}
 function loadPic(f,cb){var img=new Image();img.onload=function(){var m=Math.min(1,900/Math.max(img.width,img.height)),cv=document.createElement("canvas");cv.width=Math.round(img.width*m);cv.height=Math.round(img.height*m);cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);cb(cv.toDataURL("image/jpeg",.9),img.width,img.height)};img.onerror=function(){cb(null)};img.src=URL.createObjectURL(f)}
-function fields(W,H,k,tr){return'<div class="r"><label>Stitches wide <input type="number" id="sw" value="'+W+'" min="2" max="120"></label></div><div class="r"><label>Rows tall <input type="number" id="sh" value="'+H+'" min="2" max="300"></label></div><div class="r"><label>Colors <select id="sc"><option>2</option><option>3</option><option>4</option></select></label></div><div class="m">Trim edges (%) to cut off borders or numbers:</div><div class="r"><label>Top <input type="number" id="t0" value="'+tr[0]+'" min="0" max="40"></label><label>Bottom <input type="number" id="t1" value="'+tr[1]+'" min="0" max="40"></label></div><div class="r"><label>Left <input type="number" id="t2" value="'+tr[2]+'" min="0" max="40"></label><label>Right <input type="number" id="t3" value="'+tr[3]+'" min="0" max="40"></label></div>'}
-function rd(){return{W:+$("sw").value,H:+$("sh").value,k:+$("sc").value,tr:[0,1,2,3].map(function(i){return Math.max(0,Math.min(40,+$("t"+i).value||0))})}}
+function fields(W,H,k,tr){return'<div class="r"><label>Stitches wide <input type="number" id="sw" value="'+W+'" min="2" max="120"></label></div><div class="r"><label>Rows tall <input type="number" id="sh" value="'+H+'" min="2" max="300"></label></div><div class="r"><label>Colors (2 to 30) <input type="number" id="sc" value="'+k+'" min="2" max="30"></label></div><div class="m">Trim edges (%) to cut off borders or numbers:</div><div class="r"><label>Top <input type="number" id="t0" value="'+tr[0]+'" min="0" max="40"></label><label>Bottom <input type="number" id="t1" value="'+tr[1]+'" min="0" max="40"></label></div><div class="r"><label>Left <input type="number" id="t2" value="'+tr[2]+'" min="0" max="40"></label><label>Right <input type="number" id="t3" value="'+tr[3]+'" min="0" max="40"></label></div>'}
+function rd(){return{W:+$("sw").value,H:+$("sh").value,k:Math.max(2,Math.min(30,Math.round(+$("sc").value)||2)),tr:[0,1,2,3].map(function(i){return Math.max(0,Math.min(40,+$("t"+i).value||0))})}}
 function convert(d,o,cb){
   var img=new Image();img.onload=function(){
     var W=o.W,H=o.H,k=o.k,tr=o.tr,cv=document.createElement("canvas");cv.width=img.width;cv.height=img.height;var cx=cv.getContext("2d");cx.drawImage(img,0,0);
@@ -154,7 +154,7 @@ function applySet(){var r=document.documentElement,s=S.set,p=(PAL[s.pal]||PAL.li
 /* ---------- tracker ---------- */
 function track(){
   var P=cur,W=P.w,N=P.h,C=20,ML=30,MT=24,VW=ML*2+W*C,VH=MT*2+N*C;
-  v.innerHTML='<div id="top"><button class="b" id="bk">\u2190</button><span id="st"></span><button class="b" id="mk2">Mark: OFF</button><button class="b" id="un">Undo</button><button class="b" id="zo" style="padding:9px 12px">\u2212</button><button class="b" id="zi" style="padding:9px 12px">+</button></div><div id="zw" style="overflow-x:auto;touch-action:pan-x pan-y"><svg id="svg" viewBox="0 0 '+VW+' '+VH+'"></svg></div><div class="r"><button class="b" id="ed">Edit project</button><button class="b" id="rs">Reset progress</button></div>';
+  v.innerHTML='<div id="top"><button class="b" id="bk">\u2190</button><span id="st"></span><button class="b" id="mk2">Mark: OFF</button><button class="b" id="un">Undo</button><button class="b" id="zo" style="padding:9px 12px">\u2212</button><button class="b" id="zi" style="padding:9px 12px">+</button></div><div id="zw" style="overflow-x:auto;touch-action:pan-x pan-y"><svg id="svg" viewBox="0 0 '+VW+' '+VH+'"></svg></div><div class="r"><button class="b" id="ed">Edit project</button><button class="b" id="nt">Notes</button><button class="b" id="rs">Reset progress</button></div>';
   var svg=$("svg"),ZS=[1,1.5,2,3];
   function focusCur(){if(P.p>=N*W)return;var r=Math.floor(P.p/W)+1,j=P.p-(r-1)*W,xi=r%2===1?W-1-j:j,s=svg.clientWidth/VW,tb=$("top").getBoundingClientRect().bottom,bb=$("nav").getBoundingClientRect().top,sr=svg.getBoundingClientRect();zw.scrollLeft=(xOf(xi)+C/2)*s-zw.clientWidth/2;window.scrollBy(0,sr.top+(yOf(r)+C/2)*s-(tb+bb)/2)}
   function zoom(d){var z=S.zoom||1,n=d>0?ZS.filter(function(q){return q>z+.01})[0]:ZS.filter(function(q){return q<z-.01}).pop();if(n){S.zoom=n;save();svg.style.width=(n*100)+"%";focusCur()}}
@@ -167,8 +167,8 @@ function track(){
   svg.style.width=((S.zoom||1)*100)+"%";$("zo").onclick=function(){zoom(-1)};$("zi").onclick=function(){zoom(1)};
   function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);svg.appendChild(e);return e}
   function yOf(r){return MT+(N-r)*C}function xOf(x){return ML+x*C}
-  function setP(x){P.p=Math.max(0,Math.min(N*W,x));save();draw()}
-  function go(t){if(t>P.p+W)ask("Jump ahead to row "+(Math.floor((t-1)/W)+1)+"?",function(){setP(t)});else setP(t)}
+  var HS=[];function setP(x,nh){x=Math.max(0,Math.min(N*W,x));if(x!==P.p&&!nh){HS.push(P.p);if(HS.length>30)HS.shift()}P.p=x;save();draw()}
+  function go(t){var rw=Math.floor((t-1)/W)+1;if(t>P.p+W)ask("Jump ahead to row "+rw+"?",function(){setP(t)});else if(t<P.p-W)ask("Go back to row "+rw+"?",function(){setP(t)});else setP(t)}
   function cellTap(r,xi){if(!on)return;var j=(r%2===1)?(W-xi):(xi+1),t=(r-1)*W+j;if(t===P.p)setP(P.p-1);else go(t)}
   function rowTap(r){if(!on)return;var t=r*W;if(P.p===t)setP((r-1)*W);else go(t)}
   function draw(){
@@ -199,8 +199,9 @@ function track(){
     }else $("st").textContent="All "+N+" rows done!";
   }
   $("bk").onclick=function(){cur=null;on=false;show()};
-  $("un").onclick=function(){setP(P.p-1)};
+  $("un").onclick=function(){if(HS.length)setP(HS.pop(),1);else setP(P.p-1)};
   $("rs").onclick=function(){ask("Reset all progress for this project?",function(){setP(0)})};$("ed").onclick=function(){editP(P)};
+  $("nt").onclick=function(){var o=document.createElement("div");o.style.cssText="position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;z-index:99";o.innerHTML='<div class="card" style="background:var(--bg);width:min(92vw,420px);margin:16px"><b>Notes</b><div class="m">Hook size, yarn, anything you want to remember.</div><textarea id="nta" style="min-height:140px"></textarea><div class="r"><button class="b p" id="ntd">Done</button></div></div>';document.body.appendChild(o);var t=o.querySelector("#nta");t.value=P.notes||"";t.oninput=function(){P.notes=t.value;save()};o.querySelector("#ntd").onclick=function(){o.remove()}};
   $("mk2").onclick=function(){on=!on;this.textContent=on?"Mark: ON":"Mark: OFF";this.className=on?"b on":"b"};
   on=false;draw();
 }
@@ -274,8 +275,8 @@ function sortView(p,nm,L){
 function patTrack(){
   var P=curp,T=nSteps(P.steps);
   v.innerHTML='<div id="top"><button class="b" id="bk">\u2190</button><span id="st"></span><button class="b" id="nx">\u2713 Next</button><button class="b" id="mk2">Mark: OFF</button><button class="b" id="un">Undo</button></div><div id="L"></div><div class="r"><button class="b" id="ed">Edit pattern</button><button class="b" id="rs">Reset progress</button></div>';
-  function setP(x){P.p=Math.max(0,Math.min(T,x));save();draw();var c=document.querySelector(".cur");if(c)c.scrollIntoView({block:"center"})}
-  function go(t){if(t>P.p+1)ask("Jump ahead to step "+t+"?",function(){setP(t)});else setP(t)}
+  var HS=[];function setP(x,nh){x=Math.max(0,Math.min(T,x));if(x!==P.p&&!nh){HS.push(P.p);if(HS.length>30)HS.shift()}P.p=x;save();draw();var c=document.querySelector(".cur");if(c)c.scrollIntoView({block:"center"})}
+  function go(t){if(t>P.p+1)ask("Jump ahead to step "+t+"?",function(){setP(t)});else if(t<P.p-1)ask("Go back to step "+t+"?",function(){setP(t)});else setP(t)}
   function draw(){
     var L=$("L"),sn=0;L.innerHTML="";
     P.steps.forEach(function(s){
@@ -289,7 +290,7 @@ function patTrack(){
     $("nx").style.opacity=on?1:.4;
   }
   $("bk").onclick=function(){curp=null;on=false;show()};
-  $("un").onclick=function(){setP(P.p-1)};
+  $("un").onclick=function(){if(HS.length)setP(HS.pop(),1);else setP(P.p-1)};
   $("nx").onclick=function(){if(on)setP(P.p+1)};
   $("ed").onclick=function(){editPat(P)};
   $("rs").onclick=function(){ask("Reset all progress for this pattern?",function(){setP(0)})};
