@@ -13,7 +13,7 @@ I made Hook & Grid for my own crochet projects: a calm place to keep track of wh
 <img src="demo-4.jpg" alt="Tips and help" width="230">
 </p>
 
-**[Watch a one minute tour](demo.mp4)** (no sound, just a quick look around)
+**[Watch a one minute tour](https://escapereality94.github.io/hook-and-grid/demo.mp4)** (no sound, just a quick look around)
 
 ## Try it
 
