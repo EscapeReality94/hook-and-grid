@@ -290,7 +290,7 @@ function patTrack(){
   var P=curp,T=nSteps(P.steps);
   v.innerHTML='<div id="top"><button class="b" id="bk">\u2190</button><span id="st"></span><button class="b" id="nx">\u2713 Next</button><button class="b" id="mk2">Mark: OFF</button><button class="b" id="un">Undo</button></div><div id="L"></div><div class="r"><button class="b" id="ed">Edit pattern</button><button class="b" id="rs">Reset progress</button></div>';
   var HS=[];function setP(x,nh){x=Math.max(0,Math.min(T,x));if(x!==P.p&&!nh){HS.push(P.p);if(HS.length>30)HS.shift()}P.p=x;save();draw();var c=document.querySelector(".cur");if(c)c.scrollIntoView({block:"center"})}
-  function go(t){if(t>P.p+1)ask("Jump ahead to step "+t+"?",function(){setP(t)});else if(t<P.p-1)ask("Go back to step "+t+"?",function(){setP(t)});else setP(t)}
+  function go(t){if(t>P.p+2)ask("Jump ahead to step "+t+"?",function(){setP(t)});else if(t<P.p-1)ask("Go back to step "+t+"?",function(){setP(t)});else setP(t)}
   function draw(){
     var L=$("L"),sn=0;L.innerHTML="";
     P.steps.forEach(function(s){
